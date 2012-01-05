@@ -22,8 +22,11 @@ package
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
+	import flash.display.StageDisplayState;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.text.TextField;
 	
 	public class SampleBase extends Sprite
 	{
@@ -42,8 +45,28 @@ package
 			view.addEventListener(Scene3D.COMPLETE_EVENT, onSceneComplete);
 			view.addEventListener(Scene3D.UPDATE_EVENT, onSceneUpdate);
 			
+			addTextfield();
+			
+			stage.doubleClickEnabled = true;
+			stage.addEventListener(MouseEvent.DOUBLE_CLICK, function():void{
+				if (stage.displayState == StageDisplayState.FULL_SCREEN)
+				{
+					stage.displayState = StageDisplayState.NORMAL;
+				}
+				else
+				{
+					stage.displayState = StageDisplayState.FULL_SCREEN;
+				}
+			});
 		}
-		
+		private function addTextfield():void
+		{
+			var tf:TextField = new TextField();
+			tf.textColor = 0xffffff;
+			tf.text = "Drag to rotate - double click for fullscreen";
+			addChild(tf);
+			tf.width = 500;
+		}
 		private function onAddedToStage(event:Event):void
 		{
 			stage.addEventListener(Event.RESIZE, onResize);
