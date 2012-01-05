@@ -1,0 +1,29 @@
+/**
+ * Flare3D Layer Shader Language v1.0.
+ * @author Jonas Volger
+ */
+ 
+< namespace:"flare", name:"Rim Filter" >
+ 
+input NORMAL normal;
+interpolated float4 iNormal;
+public float3 camNormal = 0;
+
+private void vertexRimShaderV1()
+{
+	iNormal = float4( normal, 1 );
+}
+
+private float4 fragmentRimShaderV1()
+{	
+	float1 dotProduct = dot(camNormal,iNormal.xyz);
+	dotProduct = 1 - dotProduct;
+	return dotProduct * 1.5;
+	delete dotProduct;
+}
+
+technique "perVertex"
+{
+	vertex vertexRimShaderV1();
+	fragment fragmentRimShaderV1();
+}

@@ -1,0 +1,72 @@
+/**
+ * Flare3D Layer Shader Language v1.0.
+ * @author Jonas Volger
+ */
+
+< namespace:"flare", name:"SwitchColorFilter"  >
+
+// current and new target color of object
+public float4 currentcolor = float4(1,0,0,1); 
+public float4 newcolor = float4(0,0,1,1);
+// the origin of the color change 
+public float4 origin = float4(0,0,0,1);
+// time since change started 
+public float1 timedelta = float1(0.5);
+// the width of the transition
+public float1 spread = float1(6);
+
+public WORLD_VIEW_PROJ  worldViewProj;
+public WORLD  world;
+
+input POSITION position;
+input NORMAL normal;
+
+interpolated float4 iwPosition;
+
+interpolated float4 factors;
+
+private float4 v_perVertexFog()
+{
+	
+	float4 iwposition = float4 (position,1) * world;
+	
+	float1 distance = length(iwposition.xyz - origin.xyz);
+	distance /= 3;
+	factors = float4(0,0,0,1);
+	
+	float1 f1 = saturate((distance - timedelta) / spread);
+	float1 f2 = saturate(-((distance - timedelta) - spread) / spread);
+	factors.x = f1;
+	factors.y = f2;
+	float4 mynormal = float4 (normal * world,1)  * -sin(f1 * f2 / 2);
+	
+	iwposition = float4 (position,1) + mynormal;
+	
+	return iwposition * worldViewProj;
+	
+	delete iwposition;
+	delete distance;
+	delete mynormal;
+}
+
+private float4 f_perVertexFragment()
+{
+	
+	float4 color = factors.x * currentcolor;
+	color += factors.y * newcolor;
+    return color;
+    
+    delete color;
+    delete distance;
+    delete oldf;
+    delete newf;
+}
+
+technique "perVertex"
+{
+    vertex v_perVertexFog();
+    fragment f_perVertexFragment();
+}
+
+
+
