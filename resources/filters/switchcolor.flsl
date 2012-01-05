@@ -14,48 +14,58 @@ public float4 origin = float4(0,0,0,1);
 public float1 timedelta = float1(0.5);
 // the width of the transition
 public float1 spread = float1(6);
-
+// view projection
 public WORLD_VIEW_PROJ  worldViewProj;
+// world projection (transform local vertex coordinate into world space)
 public WORLD  world;
-
+// position ob currently rendered vertex
 input POSITION position;
+// the normal of the current vertex/surface
 input NORMAL normal;
-
+// position in world of the current fragment
 interpolated float4 iwPosition;
-
+// factors/intensity of the colors at the current fragment
 interpolated float4 factors;
 
-private float4 v_perVertexFog()
+
+private float4 vertexProgram()
 {
-	
+	// take position of current vertex and multiply it with the world
 	float4 iwposition = float4 (position,1) * world;
-	
+	// calculate distance between current position and distance to color change origin
 	float1 distance = length(iwposition.xyz - origin.xyz);
-	distance /= 3;
-	factors = float4(0,0,0,1);
+	distance /= 3;	// adjust it slightly, just for aesthetic reasons
+	factors = float4(0,0,0,1);	// init factors
 	
+	// calculate factors of current colors
 	float1 f1 = saturate((distance - timedelta) / spread);
 	float1 f2 = saturate(-((distance - timedelta) - spread) / spread);
+	// save in interpolation variable
 	factors.x = f1;
 	factors.y = f2;
+	// calculate modified surface normal, if its on the color transition, it gets translated outside
+	// Optional: inverted "-sin" to "sin" to make it a dent!
+	// if we are outside the transition, so either f1 or f2 is zero, the length becomes 0!
 	float4 mynormal = float4 (normal * world,1)  * -sin(f1 * f2 / 2);
-	
+	// add normal to world position!
 	iwposition = float4 (position,1) + mynormal;
-	
+	// return position of vertex for final rendering
 	return iwposition * worldViewProj;
-	
+	// delete all temporal variables!
 	delete iwposition;
 	delete distance;
 	delete mynormal;
 }
 
-private float4 f_perVertexFragment()
+private float4 fragmentProgram()
 {
-	
+	// multiply current color with its factor
 	float4 color = factors.x * currentcolor;
+	// add second color, according to its strength factor
 	color += factors.y * newcolor;
+	// and return it!
     return color;
-    
+    // as always, free the registers
     delete color;
     delete distance;
     delete oldf;
@@ -64,8 +74,8 @@ private float4 f_perVertexFragment()
 
 technique "perVertex"
 {
-    vertex v_perVertexFog();
-    fragment f_perVertexFragment();
+    vertex vertexProgram();
+    fragment fragmentProgram();
 }
 
 
