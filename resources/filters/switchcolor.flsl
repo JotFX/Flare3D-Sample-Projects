@@ -49,7 +49,7 @@ private float4 vertexProgram()
 	float4 mynormal = float4 (normal * world,1)  * -sin(f1 * f2 / 2);
 	// add normal to world position!
 	iwposition = float4 (position,1) + mynormal;
-	// return position of vertex for final rendering
+	// return view-projected position of vertex
 	return iwposition * worldViewProj;
 	// delete all temporal variables!
 	delete iwposition;
@@ -67,9 +67,6 @@ private float4 fragmentProgram()
     return color;
     // as always, free the registers
     delete color;
-    delete distance;
-    delete oldf;
-    delete newf;
 }
 
 technique "perVertex"
